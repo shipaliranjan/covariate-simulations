@@ -6,65 +6,43 @@ import pandas as pd
 from csv import writer
 
 # 8 Different Hazard Functions
-def hazard_functions(model_name, i, args):
-	if model_name == "GM":
-		return GM(args)
-	elif model_name == "NB2":
-		return NB2(i, args)
-	elif model_name == "DW2":
-		return DW2(i, args)
-	elif model_name == "DW3":
-		return DW3(i, args)
-	elif model_name == "S":
-		return S(i, args)
-	elif model_name == "TL": 
-		return TL(i, args)
-	elif model_name == "IFRSB": 
-		return IFRSB(i, args)
-	elif model_name == "IFRGSB": 
-		return IFRGSB(i, args)
-	else:
-		return 0
+def h0(model, params, ivl):
+	model = model
+	params = params
+	i = ivl + 1
+	if model == "GM":
+		b = params[0]
+		return b 		# eqn 22
 
-def GM(args):
-	# args -> (b)
-	f = args[0]
-	return f
+	elif model == "NB2":
+		b = params[0]
+		return (i*b**2)/(1 + b*(i - 1))
 
-def NB2(i, args):
-	# args -> (b)
-	f = (i * args[0]**2)/(1 + args[0] * (i - 1))
-	return f
+	elif model == "DW2":
+		b = params[0]
+		return 1 - b**(i**2 - (i - 1)**2)
 
-def DW2(i, args):
-	# args -> (b)
-	f = 1 - args[0]**(i**2 - (i - 1)**2)
-	return f
+	elif model == "DW3":
+		b, c = params
+		return 1 - exp(-c * i**b)
 
-def DW3(i, args):
-	# args -> (c, b)
-	f = 1 - math.exp(-args[0] * i**args[1])
-	return f
+	elif model == "S":
+		p, pi = params
+		return p * (1 - pi**i)
 
-def S(i, args):
-	# args -> (p, pi)
-	f = args[0] * (1 - args[1]**i)
-	return f
+	elif model == "TL":
+		c, d = params
+		return (1 - exp(-1/d))/(1 + exp(- (i - c)/d))
 
-def TL(i, args):
-	# args -> (c, d)
-	f = (1 - math.exp(-1/args[1]))/(1 + math.exp(- (i - args[0])/args[1]))
-	return f
+	elif model == "IFRSB":
+		c = params[0]
+		return 1 - c / i
 
-def IFRSB(i, args):
-	# args -> (c)
-	f = 1 - args[0] / i
-	return f
+	elif model == "IFRGSB":
+		c, alpha = params
+		return 1 - c / ((i - 1) * alpha + 1)
 
-def IFRGSB(i, args):
-	# args -> (c, alpha)
-	f = 1 - args[0] / ((i - 1) * args[1] + 1)
-	return f
+	raise Exception("model not implemented")
 
 def poisson_variate(lam): # algorithm to find pseudorandom variate of the Poisson distribution
 	x = 0
@@ -86,10 +64,10 @@ def g(x, n, betas, interval): # Equation 15
 	g = exp(g)
 	return g
 
-def p(interval, x, n, beta, h): # Equation 19
-	pixi = 1 - pow(1 - h, g(x, n, beta, interval))
+def p(model, params, interval, x, n, beta): # Equation 19
+	pixi = 1 - pow(1 - h0(model, params, interval), g(x, n, beta, interval))
 	for k in range(0, interval):
-		pixi *= pow(1 - h, g(x, n, beta, k))
+		pixi *= pow(1 - h0(model, params, k), g(x, n, beta, k))
 	return pixi
 	
 def Generate_IMPL(model_name, x, covNum, num_intervals, beta, omega, hazard_params):
@@ -97,8 +75,7 @@ def Generate_IMPL(model_name, x, covNum, num_intervals, beta, omega, hazard_para
 	cumulative = 0
 	failures = []
 	for j in range(0, num_intervals):	
-		h = hazard_functions(model_name, j+1, hazard_params)
-		prob = p(j, x, n, beta, h)
+		prob = p(model_name, hazard_params, j, x, n, beta)
 		failures.append(poisson_variate(omega * prob))
 	return failures
 
