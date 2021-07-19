@@ -76,7 +76,6 @@ def poisson_variate(lam): # algorithm to find pseudorandom variate of the Poisso
 		x += 1
 		p *= lam / x
 		s += p
-	print(x)
 	return x
 
 def g(x, n, betas, interval): # Equation 15
@@ -92,14 +91,16 @@ def p(interval, x, n, beta, h): # Equation 19
 		pixi *= pow(1 - h, g(x, n, beta, k))
 	return pixi
 	
-def Generate_IMPL(model_name, x, covNum, num_intervals, beta, omega, hazard_params):
+def generate_FC(model_name, x, covNum, num_intervals, beta, omega, hazard_params):
 	n = len(beta)
-	cumulative = 0
 	failures = []
+	cumulative = 0
 	for j in range(0, num_intervals):	
 		h = hazard_functions(model_name, j+1, hazard_params)
 		prob = p(j, x, n, beta, h)
 		failures.append(poisson_variate(omega * prob))
+		cumulative += prob
+	print(failures)
 	return failures
 
 ##########################
@@ -125,7 +126,7 @@ def Generate_Covariates(output_filename, model_name, cov_file, num_cov, betas, o
 		cov_array.append(new_cov)
 	
 	print(num_intervals)
-	FC = Generate_IMPL(model_name, cov_array, num_cov, num_intervals, betas, omega, hazard_params)
+	FC = generate_FC(model_name, cov_array, num_cov, num_intervals, betas, omega, hazard_params)
 	with open(output_filename, 'w') as myfile:
 		wr = writer(myfile)
 		wr.writerow(['T', 'FC'] + [f'x{i+1}' for i in range(len(cov_array))])
