@@ -491,7 +491,7 @@ ifrgsb_x = [0.51435809,  0.09365767, -0.0183567,  0.08190612,  0.11857083,  0.00
 parameters = {"IFRGSB": [0.1, 0.1], "GM": [0.01], "NB2": [0.01], "DW2": [0.994], "DW3": [0.1, 0.5], "S": [0.1, 0.1], "TL": [0.1, 0.1], "IFRSB": [0.1]}
 hazard_names = ["IFRGSB", "GM", "NB2", "DW2", "DW3", "S", "TL", "IFRSB"]
 num_covariates = 10
-num_simulated_sets = 30
+num_simulated_sets = 1000
 
 headers = ["Jacob", "Josh", "Caroline"]
 with open(f'runtimes.csv', 'w', newline='') as stream:
