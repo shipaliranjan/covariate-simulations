@@ -493,6 +493,11 @@ hazard_names = ["IFRGSB", "GM", "NB2", "DW2", "DW3", "S", "TL", "IFRSB"]
 num_covariates = 10
 num_simulated_sets = 30
 
+headers = ["Jacob", "Josh", "Caroline"]
+with open(f'runtimes.csv', 'w', newline='') as stream:
+    writer = csv.writer(stream)
+    writer.writerow(headers)
+
 for hazard_name in ["GM"]:
     for model in ["GM"]:
         for numCov in range(10, num_covariates+1):
@@ -524,17 +529,23 @@ for hazard_name in ["GM"]:
                     time1 = objective_stop - objective_start
 
                     objective_start = time.time()
-                    caroline_LL = RLLCV(model, mle_array)
+                    josh_LL = RLLCV(model, mle_array)
                     objective_stop = time.time()
                     time2 = objective_stop - objective_start
 
                     objective_start = time.time()
-                    cpp_LL = cpp_RLLCV(model, mle_array)
+                    caroline_LL = cpp_RLLCV(model, mle_array)
                     objective_stop = time.time()
                     time3 = objective_stop - objective_start
 
                     times = [time1, time2, time3]
-                    lls = [jacob_LL, caroline_LL, cpp_LL]
+                    lls = [jacob_LL, josh_LL, caroline_LL]
 
                     print(f"Data:{hazard_name} | Model:{model} | {numCov} Covariate(s) | Run {run}")
                     print(f"{lls}\n{times}\n\n")
+
+                    with open(f'runtimes.csv', 'a+', newline='') as stream:
+                        writer = csv.writer(stream)
+                        writer.writerow(times)
+
+
