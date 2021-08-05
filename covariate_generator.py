@@ -1,7 +1,7 @@
 import scipy.stats
 import numpy as np
 from csv import writer
-import random
+import random, os
 import simulator
 
 
@@ -45,6 +45,10 @@ def generate_all_files(base_directory):
 
 	for hazard in hazard_names:
 		print("using hazard ", hazard)
+		try:
+			os.mkdir(base_directory + "/" + hazard, 0o777)
+		except:
+			pass
 		for num_covariates in range(11):
 			
 			output_filename = base_directory + "/" + hazard + "/" \
@@ -73,6 +77,11 @@ def generate_all_files(base_directory):
 			
 			
 			
-for i in range(5): 
+for i in range(1000): 
 	base_dir = "cov_sims/sim" + str(i + 1)
+	try:
+		os.mkdir(base_dir)
+	except:
+		print("failed creating dir")
+		pass
 	generate_all_files(base_dir)
