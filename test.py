@@ -309,25 +309,18 @@ def runEstimation(covariateData):
     return runtime, converged, mle_array
 
 
-# rllcv_libpath = os.path.abspath("rllcv.so")
-# if not rllcv_libpath:
-#     print("Unable to find rllcv lib")
-#     sys.exit()
+rllcv_libpath = os.path.abspath("rllcv.so")
+if not rllcv_libpath:
+    print("Unable to find rllcv lib")
+    sys.exit()
 
-# try:
-#     rllcv_lib = ctypes.CDLL(rllcv_libpath)
-# except OSError:
-#     print("Unable to load rllcvlib")
-#     sys.exit()
+try:
+    rllcv_lib = ctypes.CDLL(rllcv_libpath)
+except OSError:
+    print("Unable to load rllcvlib")
+    sys.exit()
 
-# dataset = pd.read_csv("GM_10cov_dataset.csv").transpose().values
-# dataset = dataset[1:]
-# covariates = dataset[1:]
-# kVec = dataset[0]
-
-# num_hazard_params = 1
-
-# max_val = 2 ^ 64
+max_val = 2 ^ 64
 
 
 def h0(model, params, ivl):
@@ -505,7 +498,12 @@ for hazard_name in ["GM"]:
         for numCov in range(10, num_covariates+1):
             runtimes = []
             for run in range(1, num_simulated_sets+1):
-                input_file = f"datasets/cov_sims30/sim{run}/{hazard_name}/{hazard_name}_{numCov}cov_dataset.csv"
+                input_file = f"cov_sims/sim{run}/{hazard_name}/{hazard_name}_{numCov}cov_dataset.csv"
+                dataset = pd.read_csv(input_file).transpose().values
+                dataset = dataset[1:]
+                covariates = dataset[1:]
+                kVec = dataset[0]
+                
                 metricNames = csv.reader(open(input_file, newline=''))
                 metricNames = next(metricNames)[2:]
                 data = pd.read_csv(input_file)
@@ -530,13 +528,13 @@ for hazard_name in ["GM"]:
                     objective_stop = time.time()
                     time2 = objective_stop - objective_start
 
-                    # objective_start = time.time()
-                    # cpp_LL = cpp_RLLCV(model, mle_array)
-                    # objective_stop = time.time()
-                    # time3 = objective_stop - objective_start
+                    objective_start = time.time()
+                    cpp_LL = cpp_RLLCV(model, mle_array)
+                    objective_stop = time.time()
+                    time3 = objective_stop - objective_start
 
-                    times = [time1, time2]
-                    lls = [jacob_LL, caroline_LL]
+                    times = [time1, time2, time3]
+                    lls = [jacob_LL, caroline_LL, cpp_LL]
 
                     print(f"Data:{hazard_name} | Model:{model} | {numCov} Covariate(s) | Run {run}")
                     print(f"{lls}\n{times}\n\n")
